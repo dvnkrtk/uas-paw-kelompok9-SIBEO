@@ -1,0 +1,8 @@
+pyramid
+sqlalchemy
+transaction
+pyramid_tm
+pyramid_retry
+pyramid_debugtoolbar
+zope.sqlalchemy
+waitress
