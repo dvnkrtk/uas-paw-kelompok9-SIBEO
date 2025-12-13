@@ -1,6 +1,14 @@
 # SIBEO 
 Aplikasi E-Learning modern yang dibangun dengan React, memungkinkan student untuk membrowse dan enroll courses, serta instructor untuk membuat dan mengelola course content.
 
+## Fitur Utama
+### Untuk Student
+- Browse dan search courses dengan filter kategori
+- Enroll dan unenroll dari courses
+- View course modules dan content
+- Track learning progress
+- Dashboard dengan statistics pembelajaran
+  
 ## Tech Stack
 - **Framework**: Pyramid
 - **Database**: PostgreSQL
