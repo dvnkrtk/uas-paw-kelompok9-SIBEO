@@ -8,7 +8,20 @@ Aplikasi E-Learning modern yang dibangun dengan React, memungkinkan student untu
 - View course modules dan content
 - Track learning progress
 - Dashboard dengan statistics pembelajaran
-  
+
+### Untuk Instructor
+- Create, edit, dan delete courses
+- Manage course modules
+- View enrolled students per course
+- Dashboard analytics dengan stats pengajaran
+- Track teaching performance
+
+### Authentication & Security
+- User registration dengan role selection (student/instructor)
+- Secure login dengan JWT token
+- Protected routes - akses hanya untuk authenticated users
+- Token stored di localStorage dengan automatic refresh
+
 ## Tech Stack
 - **Framework**: Pyramid
 - **Database**: PostgreSQL
