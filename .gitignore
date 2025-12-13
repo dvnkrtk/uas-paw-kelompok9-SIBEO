@@ -1,0 +1,14 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+venv/
+env/
+.env
+instance/*.db  # atau instance/ kecuali instance/.gitkeep
+*.log
+matakuliah_app.egg-info/
+.coverage
+htmlcov/
+.pytest_cache/

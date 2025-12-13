@@ -1,5 +1,5 @@
 Metadata-Version: 2.4
-Name: matakuliah_app
+Name: e_learning
 Version: 0.1
 Summary: Aplikasi Manajemen Matakuliah dengan Pyramid
 Requires-Dist: pyramid

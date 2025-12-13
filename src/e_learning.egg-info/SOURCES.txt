@@ -1,0 +1,8 @@
+setup.py
+e_learning.egg-info/PKG-INFO
+e_learning.egg-info/SOURCES.txt
+e_learning.egg-info/dependency_links.txt
+e_learning.egg-info/entry_points.txt
+e_learning.egg-info/not-zip-safe
+e_learning.egg-info/requires.txt
+e_learning.egg-info/top_level.txt

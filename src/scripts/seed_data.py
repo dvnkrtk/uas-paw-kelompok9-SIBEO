@@ -2,11 +2,11 @@ import transaction
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from pyramid.paster import get_appsettings
-from matakuliah_app.models import Base, User, Course, Module, Enrollment, DBSession
+from e_learning.models import Base, User, Course, Module, Enrollment, DBSession
 
 def main():
     # Setup koneksi database
-    config_uri = 'development.ini'
+    config_uri = 'config/development.ini'
     settings = get_appsettings(config_uri)
     engine = create_engine(settings['sqlalchemy.url'])
     DBSession.configure(bind=engine)

@@ -5,7 +5,7 @@ import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from sqlalchemy import create_engine
-from matakuliah_app.models import Base, DBSession, Matakuliah
+from e_learning.models import Base, DBSession, Matakuliah
 
 def init_db():
     """Initialize database dengan tabel dan data contoh"""

@@ -12,15 +12,15 @@ requires = [
 ]
 
 setup(
-    name='matakuliah_app',
+    name='e_learning',
     version='0.1',
     description='Aplikasi Manajemen Matakuliah dengan Pyramid',
-    packages=find_packages(),
+    packages=find_packages(where='src'),
     include_package_data=True,
     zip_safe=False,
     install_requires=requires,
     entry_points="""\
     [paste.app_factory]
-    main = matakuliah_app:main
+    main = e_learning:main
     """,
 )
