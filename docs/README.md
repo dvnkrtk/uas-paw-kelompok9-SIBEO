@@ -1,4 +1,5 @@
-# Platform E-Learning - Backend System
+# SIBEO 
+Aplikasi E-Learning modern yang dibangun dengan React, memungkinkan student untuk membrowse dan enroll courses, serta instructor untuk membuat dan mengelola course content.
 
 ## Tech Stack
 - **Framework**: Pyramid
