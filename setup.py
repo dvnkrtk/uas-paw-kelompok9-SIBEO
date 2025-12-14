@@ -11,6 +11,7 @@ requires = [
     'pyramid_debugtoolbar',
     'zope.sqlalchemy',
     'waitress',
+    'passlib[argon2]',   # Untuk password hashing - TAMBAHAN TAHAP 2
 ]
 
 dev_requires = [

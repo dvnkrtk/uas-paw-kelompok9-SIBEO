@@ -1,6 +1,6 @@
 from pyramid.view import view_config
 from pyramid.response import Response
-from pyramid.httpexceptions import HTTPNotFound, HTTPBadRequest
+from pyramid.httpexceptions import HTTPNotFound, HTTPBadRequest, HTTPUnauthorized
 import json
 from sqlalchemy.exc import IntegrityError
 from .models import DBSession, User, Course, Module, Enrollment
@@ -12,11 +12,219 @@ def home_view(request):
         'status': 'success',
         'message': 'Welcome to LMS API Platform',
         'endpoints': {
+            'register': '/api/register',
+            'login': '/api/login',
             'users': '/api/users',
             'courses': '/api/courses',
             'enrollment': '/api/enroll'
         }
     }
+
+# --- AUTHENTICATION VIEWS - TAMBAHAN TAHAP 2 ---
+class AuthViews:
+    def __init__(self, request):
+        self.request = request
+        self.dbsession = DBSession
+
+    @view_config(route_name='register', renderer='json')
+    def register(self):
+        """Register new user with password hashing"""
+        transaction = self.dbsession.begin()  # Start transaction manual
+        try:
+            # Parse JSON dengan error handling
+            try:
+                data = self.request.json_body
+                print(f"🔧 DEBUG: Register attempt with data: {data}")
+            except ValueError as json_error:
+                print(f"❌ JSON Parse Error: {json_error}")
+                transaction.rollback()
+                return Response(
+                    json.dumps({'error': 'Invalid JSON format'}),
+                    status=400,
+                    content_type='application/json',
+                    charset='utf-8'
+                )
+            
+            # Validation
+            required_fields = ['name', 'email', 'password', 'role']
+            if not all(k in data for k in required_fields):
+                print(f"❌ Missing fields: {required_fields}")
+                transaction.rollback()
+                return Response(
+                    json.dumps({'error': 'Missing required fields: name, email, password, role'}),
+                    status=400,
+                    content_type='application/json',
+                    charset='utf-8'
+                )
+            
+            # Check if email already exists
+            existing_user = self.dbsession.query(User).filter(User.email == data['email']).first()
+            if existing_user:
+                print(f"❌ Email already exists: {data['email']}")
+                transaction.rollback()
+                return Response(
+                    json.dumps({'error': 'Email already registered'}),
+                    status=400,
+                    content_type='application/json',
+                    charset='utf-8'
+                )
+            
+            # Validate role
+            if data['role'] not in ['student', 'instructor']:
+                print(f"❌ Invalid role: {data['role']}")
+                transaction.rollback()
+                return Response(
+                    json.dumps({'error': "Role must be 'student' or 'instructor'"}),
+                    status=400,
+                    content_type='application/json',
+                    charset='utf-8'
+                )
+            
+            print(f"✅ Creating user: {data['name']}, {data['email']}")
+            
+            # Create user with hashed password
+            new_user = User.create_user(
+                name=data['name'],
+                email=data['email'],
+                password=data['password'],
+                role=data['role']
+            )
+            
+            self.dbsession.add(new_user)
+            self.dbsession.flush()
+            
+            # ⭐⭐ COMMIT MANUAL ⭐⭐
+            transaction.commit()
+            
+            print(f"✅ User created and COMMITTED with ID: {new_user.id}")
+            
+            # Start session for new user
+            self.request.session['user_id'] = new_user.id
+            self.request.session['user_email'] = new_user.email
+            self.request.session['user_role'] = new_user.role
+            
+            print(f"✅ Session set: user_id={new_user.id}")
+            
+            return {
+                'status': 'success',
+                'message': 'Registration successful',
+                'data': new_user.to_dict(),
+                'session': {
+                    'user_id': new_user.id,
+                    'user_email': new_user.email,
+                    'user_role': new_user.role
+                }
+            }
+            
+        except Exception as e:
+            transaction.rollback()
+            import traceback
+            error_trace = traceback.format_exc()
+            print(f"🔥 CRITICAL ERROR in register: {str(e)}")
+            print(f"📋 Full traceback:\n{error_trace}")
+            
+            return Response(
+                json.dumps({'error': f'Registration failed: {str(e)}'}),
+                status=500,
+                content_type='application/json',
+                charset='utf-8'
+            )
+
+    @view_config(route_name='login', renderer='json')
+    def login(self):
+        """Login user and create session"""
+        try:
+            # Parse JSON dengan error handling
+            try:
+                data = self.request.json_body
+                print(f"🔧 DEBUG: Login attempt for email: {data.get('email', 'NOT PROVIDED')}")
+            except ValueError as json_error:
+                print(f"❌ JSON Parse Error in login: {json_error}")
+                return Response(
+                    json.dumps({'error': 'Invalid JSON format'}),
+                    status=400,
+                    content_type='application/json',
+                    charset='utf-8'
+                )
+            
+            # Validation
+            if 'email' not in data or 'password' not in data:
+                print(f"❌ Missing email or password in login request")
+                return Response(
+                    json.dumps({'error': 'Email and password required'}),
+                    status=400,
+                    content_type='application/json',
+                    charset='utf-8'
+                )
+            
+            print(f"🔍 Looking for user with email: {data['email']}")
+            
+            # Find user by email
+            user = self.dbsession.query(User).filter(User.email == data['email']).first()
+            
+            if not user:
+                print(f"❌ User not found: {data['email']}")
+                return Response(
+                    json.dumps({'error': 'Invalid email or password'}),
+                    status=401,
+                    content_type='application/json',
+                    charset='utf-8'
+                )
+            
+            print(f"✅ User found: {user.name} (ID: {user.id})")
+            
+            # Verify password
+            print(f"🔐 Verifying password...")
+            if not user.verify_password(data['password']):
+                print(f"❌ Password verification failed for user: {user.email}")
+                return Response(
+                    json.dumps({'error': 'Invalid email or password'}),
+                    status=401,
+                    content_type='application/json',
+                    charset='utf-8'
+                )
+            
+            print(f"✅ Password verified successfully")
+            
+            # Create session
+            self.request.session['user_id'] = user.id
+            self.request.session['user_email'] = user.email
+            self.request.session['user_role'] = user.role
+            
+            print(f"✅ Session created: user_id={user.id}, email={user.email}, role={user.role}")
+            
+            return {
+                'status': 'success',
+                'message': 'Login successful',
+                'data': user.to_dict(),
+                'session': {
+                    'user_id': user.id,
+                    'user_email': user.email,
+                    'user_role': user.role
+                }
+            }
+            
+        except Exception as e:
+            import traceback
+            error_trace = traceback.format_exc()
+            print(f"🔥 CRITICAL ERROR in login: {str(e)}")
+            print(f"📋 Full traceback:\n{error_trace}")
+            
+            return Response(
+                json.dumps({'error': f'Login failed: {str(e)}'}),
+                status=500,
+                content_type='application/json',
+                charset='utf-8'
+            )
+        
+    @view_config(route_name='logout', renderer='json')
+    def logout(self):
+        """Logout user by clearing session"""
+        self.request.session.invalidate()
+        return {
+            'status': 'success',
+            'message': 'Logout successful'
+        }
 
 # --- USER VIEWS ---
 class UserViews:
@@ -31,17 +239,20 @@ class UserViews:
 
     @view_config(route_name='create_user', renderer='json')
     def create_user(self):
+        """Legacy endpoint - now uses password hashing"""
         try:
             data = self.request.json_body
             if not all(k in data for k in ('name', 'email', 'password', 'role')):
                 return Response(json.dumps({'error': 'Missing required fields'}), status=400, content_type='application/json')
             
-            new_user = User(
+            # Use the new create_user method with hashing
+            new_user = User.create_user(
                 name=data['name'],
                 email=data['email'],
-                password=data['password'], 
+                password=data['password'],
                 role=data['role']
             )
+            
             self.dbsession.add(new_user)
             self.dbsession.flush()
             return {'status': 'success', 'data': new_user.to_dict()}

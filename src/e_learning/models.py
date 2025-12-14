@@ -9,9 +9,16 @@ from sqlalchemy import (
     DateTime,
     func
 )
+from passlib.context import CryptContext
 
 DBSession = scoped_session(sessionmaker())
 Base = declarative_base()
+
+# Password hashing context - GUNAKAN Argon2
+pwd_context = CryptContext(
+    schemes=["argon2"],
+    deprecated="auto"
+)
 
 # 1. Tabel Users (Student & Instructor)
 class User(Base):
@@ -35,6 +42,22 @@ class User(Base):
             'email': self.email,
             'role': self.role
         }
+    
+    # TAMBAHAN TAHAP 2: Password hashing methods - PERBAIKI INDENTASI
+    def set_password(self, password):
+        """Hash password dan simpan"""
+        self.password = pwd_context.hash(password)
+    
+    def verify_password(self, password):
+        """Verifikasi password dengan hash"""
+        return pwd_context.verify(password, self.password)
+    
+    @classmethod
+    def create_user(cls, name, email, password, role):
+        """Helper method untuk membuat user dengan password hashing"""
+        user = cls(name=name, email=email, role=role)
+        user.set_password(password)
+        return user
 
 # 2. Tabel Courses
 class Course(Base):

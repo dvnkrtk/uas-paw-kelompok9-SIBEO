@@ -1,13 +1,21 @@
 import transaction
+import os
+import sys
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from pyramid.paster import get_appsettings
 from e_learning.models import Base, User, Course, Module, Enrollment, DBSession
 
 def main():
-    # Setup koneksi database
-    config_uri = 'config/development.ini'
-    settings = get_appsettings(config_uri)
+    # Setup koneksi database - PERBAIKAN PATH
+    # Tambahkan path ke parent directory
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.dirname(os.path.dirname(current_dir))
+    config_path = os.path.join(project_root, 'src', 'config', 'development.ini')
+    
+    print(f"📁 Loading config from: {config_path}")
+    
+    settings = get_appsettings(config_path)
     engine = create_engine(settings['sqlalchemy.url'])
     DBSession.configure(bind=engine)
     session = DBSession()
@@ -17,14 +25,15 @@ def main():
     # 1. Create Users (Instructor & Student)
     # Cek apakah user sudah ada untuk menghindari duplikat
     if session.query(User).count() == 0:
-        instructor = User(
+        # Gunakan create_user method yang sudah hash password
+        instructor = User.create_user(
             name="Muhammad Habib Algifari, S.Kom.,M.TI.",
             email="Habib@itera.ac.id",
-            password="password123", # Di real app, ini harus di-hash
+            password="password123", # Sekarang akan di-hash otomatis
             role="instructor"
         )
         
-        student = User(
+        student = User.create_user(
             name="Jonathan Sinaga",
             email="jonathan@student.itera.ac.id",
             password="password123",
@@ -35,7 +44,9 @@ def main():
         session.add(student)
         session.flush() # Agar kita bisa dapat ID user
         
-        print("✅ Users dibuat: Pak Budi & Jonathan")
+        print("✅ Users dibuat: Pak Habib & Jonathan")
+        print(f"   Instructor ID: {instructor.id}")
+        print(f"   Student ID: {student.id}")
 
         # 2. Create Course
         course_web = Course(
@@ -47,7 +58,7 @@ def main():
         
         session.add(course_web)
         session.flush()
-        print("✅ Course dibuat: Pemrograman Web Lanjut")
+        print(f"✅ Course dibuat: {course_web.title} (ID: {course_web.id})")
 
         # 3. Create Modules
         mod1 = Module(
@@ -66,7 +77,7 @@ def main():
         
         session.add(mod1)
         session.add(mod2)
-        print("✅ Modules dibuat.")
+        print(f"✅ Modules dibuat: {mod1.title}, {mod2.title}")
 
         # 4. Create Enrollment
         enroll = Enrollment(
@@ -74,12 +85,19 @@ def main():
             course_id=course_web.id
         )
         session.add(enroll)
-        print("✅ Enrollment dibuat: Jonathan -> Pemrograman Web")
+        print(f"✅ Enrollment dibuat: Student {student.name} -> Course {course_web.title}")
 
         session.commit()
         print("🎉 Seeding Selesai!")
+        
+        # Tampilkan info login untuk testing
+        print("\n🔐 Info Login untuk Testing:")
+        print(f"   Instructor: email={instructor.email}, password=password123")
+        print(f"   Student: email={student.email}, password=password123")
+        
     else:
-        print("⚠️ Data sudah ada, seeding dilewati.")
+        user_count = session.query(User).count()
+        print(f"⚠️  Data sudah ada ({user_count} users), seeding dilewati.")
 
 if __name__ == '__main__':
     main()
