@@ -1,8 +1,8 @@
 services:
   - type: web
-    name: e-learning-platform
+    name: uas-paw-kelompok9-SIBEO
     env: python
-    runtime: python-3.11
+    pythonVersion: 3.11.9
     buildCommand: pip install -r requirements.txt
     startCommand: pserve src/config/production.ini
     envVars:
