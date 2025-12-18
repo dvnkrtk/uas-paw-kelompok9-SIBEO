@@ -1,0 +1,12 @@
+[build]
+builder = "nixpacks"
+buildCommand = "pip install -r requirements.txt"
+
+[deploy]
+startCommand = "python main.py"
+healthCheckPath = "/"
+healthCheckTimeout = 120
+
+[variables]
+SESSION_SECRET = "railway-production-secret-change-me"
+PYRAMID_RELOAD_TEMPLATES = "false"

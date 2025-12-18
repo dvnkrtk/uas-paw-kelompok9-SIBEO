@@ -1,17 +1,19 @@
 from setuptools import setup, find_packages
 
 requires = [
-    'pyramid',
-    'sqlalchemy',
-    'alembic',           # Database migration
-    'psycopg2-binary',   # PostgreSQL adapter
-    'transaction',
-    'pyramid_tm',
-    'pyramid_retry',
-    'pyramid_debugtoolbar',
-    'zope.sqlalchemy',
-    'waitress',
-    'passlib[argon2]',   # Untuk password hashing - TAMBAHAN TAHAP 2
+    'pyramid==2.0.2',
+    'pyramid_tm==2.5',
+    'pyramid_retry==2.1.1',
+    'sqlalchemy==1.4.51',
+    'alembic==1.13.1',
+    'psycopg2-binary==2.9.9',
+    'transaction==3.0.1',
+    'zope.sqlalchemy==4.1',
+    'passlib[argon2]==1.7.4',
+    'waitress==3.0.1',
+    'plaster==1.0',
+    'plaster_pastedeploy==0.7',
+    'webob==1.8.8',
 ]
 
 dev_requires = [

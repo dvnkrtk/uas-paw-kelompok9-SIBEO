@@ -1,3 +1,4 @@
+import os
 from pyramid.config import Configurator
 from sqlalchemy import engine_from_config
 from pyramid.session import SignedCookieSessionFactory
@@ -6,8 +7,16 @@ from .models import DBSession, Base
 
 def main(global_config, **settings):
     """Function returns a Pyramid WSGI application."""
-    
-    # Database configuration
+
+    # 🔥 AMBIL ENV RENDER
+    database_url = os.environ.get("DATABASE_URL")
+    session_secret = os.environ.get("SESSION_SECRET", "fallback-secret")
+
+    if database_url:
+        settings['sqlalchemy.url'] = database_url
+
+    settings['pyramid.session.secret'] = session_secret
+
     engine = engine_from_config(settings, 'sqlalchemy.')
     
     # Konfigurasi DBSession dengan engine
