@@ -1,5 +1,8 @@
 FROM python:3.11.9-slim
 
+# SET ENVIRONMENT VARIABLE agar Python bisa menemukan package di src/
+ENV PYTHONPATH=/app/src
+
 WORKDIR /app
 
 COPY requirements.txt .

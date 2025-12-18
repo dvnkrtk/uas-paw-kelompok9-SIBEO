@@ -24,13 +24,12 @@ setup(
     name='e_learning',
     version='0.1',
     description='Platform E-Learning dengan Pyramid Framework',
-    packages=find_packages(where='src'),
-    package_dir={'': 'src'},
+    packages=find_packages(),  # HAPUS: where='src' dan package_dir
     include_package_data=True,
     zip_safe=False,
     install_requires=requires,
     extras_require={
-        'dev': dev_requires,
+        'dev': ['pyramid_debugtoolbar'],
     },
     entry_points="""\
     [paste.app_factory]
