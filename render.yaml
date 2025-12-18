@@ -1,6 +1,7 @@
 services:
   - type: web
     name: uas-paw-kelompok9-SIBEO
+    runtime: docker  # <-- TAMBAH INI
     dockerfilePath: Dockerfile
     envVars:
       - key: DATABASE_URL
