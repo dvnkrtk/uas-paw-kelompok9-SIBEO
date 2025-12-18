@@ -12,4 +12,4 @@ COPY . .
 
 EXPOSE 8000
 
-CMD ["pserve", "src/config/production.ini"]
+CMD ["sh", "-c", "python init_db_render.py && gunicorn --paste src/config/production.ini"]
