@@ -2,7 +2,7 @@ services:
   - type: web
     name: e-learning-platform
     env: python
-    pythonVersion: "3.12.9"
+    pythonVersion: "3.11.9"  # UBAH: dari "3.12.9" ke "3.11.9"
     buildCommand: pip install -r requirements.txt
     startCommand: pserve src/config/production.ini
     envVars:
