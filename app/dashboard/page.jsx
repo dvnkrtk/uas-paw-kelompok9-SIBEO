@@ -58,14 +58,32 @@ export default function DashboardPage() {
   }
 
   const handleDeleteCourse = async (courseId) => {
+    if (!courseId) {
+      alert("Terjadi kesalahan: ID Kursus tidak ditemukan.")
+      return
+    }
+
     if (!confirm("Apakah Anda yakin ingin menghapus kursus ini?")) return
 
     try {
+      // 1. Panggil API Delete
       await courseService.deleteCourse(courseId)
+      
+      // 2. Update State Lokal (Optimistic UI) agar tidak perlu reload berat
+      setCourses(prevCourses => {
+         // Filter berdasarkan id atau course_id untuk memastikan item terhapus
+         return prevCourses.filter(c => (c.id || c.course_id) !== courseId)
+      })
+
       alert("Kursus berhasil dihapus!")
-      loadDashboardData()
+      
+      // Opsional: Reload data background untuk memastikan sinkronisasi
+      // loadDashboardData() 
     } catch (error) {
+      console.error("Delete error:", error)
       alert("Gagal menghapus kursus: " + error.message)
+      // Jika gagal, reload data asli
+      loadDashboardData()
     }
   }
 
@@ -168,68 +186,73 @@ export default function DashboardPage() {
                   </CardContent>
                 </Card>
               ) : (
-                courses.map((course) => (
-                  <Card key={course.id || course.course_id}>
-                    <CardHeader>
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <CardTitle className="line-clamp-1">{course.title || course.course_title}</CardTitle>
-                          <CardDescription className="mt-1">
-                            {user.role === "instructor"
-                              ? `${course.total_students || 0} Students`
-                              : `Progress: ${course.progress || 0}%`}
-                          </CardDescription>
-                        </div>
-                        {user.role === "instructor" && (
-                          <span
-                            className={`text-xs px-2 py-1 rounded ${course.status === "published" ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" : "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200"}`}
-                          >
-                            {course.status}
-                          </span>
-                        )}
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      {user.role === "student" && (
-                        <div className="mb-4">
-                          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                            <div
-                              className="bg-primary h-2 rounded-full transition-all"
-                              style={{ width: `${course.progress || 0}%` }}
-                            ></div>
+                courses.map((course) => {
+                  // FIX: Pastikan ID selalu terambil baik dari field 'id' maupun 'course_id'
+                  const courseId = course.id || course.course_id
+                  
+                  return (
+                    <Card key={courseId}>
+                      <CardHeader>
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <CardTitle className="line-clamp-1">{course.title || course.course_title}</CardTitle>
+                            <CardDescription className="mt-1">
+                              {user.role === "instructor"
+                                ? `${course.total_students || 0} Students`
+                                : `Progress: ${course.progress || 0}%`}
+                            </CardDescription>
                           </div>
-                          <p className="text-xs text-muted-foreground mt-2">
-                            {course.completed_modules || 0} / {course.total_modules || 0} modul selesai
-                          </p>
+                          {user.role === "instructor" && (
+                            <span
+                              className={`text-xs px-2 py-1 rounded ${course.status === "published" ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" : "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200"}`}
+                            >
+                              {course.status}
+                            </span>
+                          )}
                         </div>
-                      )}
-                      <div className="flex gap-2">
-                        {user.role === "instructor" ? (
-                          <>
-                            <Link href={`/instructor/courses/${course.id}`} className="flex-1">
-                              <Button variant="outline" className="w-full bg-transparent">
-                                <Eye className="w-4 h-4 mr-2" />
-                                Lihat
-                              </Button>
-                            </Link>
-                            <Link href={`/instructor/courses/${course.id}/edit`}>
-                              <Button variant="outline">
-                                <Edit className="w-4 h-4" />
-                              </Button>
-                            </Link>
-                            <Button variant="destructive" onClick={() => handleDeleteCourse(course.id)}>
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </>
-                        ) : (
-                          <Link href={`/courses/${course.course_id}`} className="flex-1">
-                            <Button className="w-full">Lanjutkan Belajar</Button>
-                          </Link>
+                      </CardHeader>
+                      <CardContent>
+                        {user.role === "student" && (
+                          <div className="mb-4">
+                            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                              <div
+                                className="bg-primary h-2 rounded-full transition-all"
+                                style={{ width: `${course.progress || 0}%` }}
+                              ></div>
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-2">
+                              {course.completed_modules || 0} / {course.total_modules || 0} modul selesai
+                            </p>
+                          </div>
                         )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))
+                        <div className="flex gap-2">
+                          {user.role === "instructor" ? (
+                            <>
+                              <Link href={`/instructor/courses/${courseId}`} className="flex-1">
+                                <Button variant="outline" className="w-full bg-transparent">
+                                  <Eye className="w-4 h-4 mr-2" />
+                                  Lihat
+                                </Button>
+                              </Link>
+                              <Link href={`/instructor/courses/${courseId}/edit`}>
+                                <Button variant="outline">
+                                  <Edit className="w-4 h-4" />
+                                </Button>
+                              </Link>
+                              <Button variant="destructive" onClick={() => handleDeleteCourse(courseId)}>
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </>
+                          ) : (
+                            <Link href={`/courses/${courseId}`} className="flex-1">
+                              <Button className="w-full">Lanjutkan Belajar</Button>
+                            </Link>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )
+                })
               )}
             </div>
           </div>
