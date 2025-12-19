@@ -1,0 +1,14 @@
+pyramid
+sqlalchemy
+alembic
+psycopg2-binary
+transaction
+pyramid_tm
+pyramid_retry
+pyramid_debugtoolbar
+zope.sqlalchemy
+waitress
+passlib[argon2]
+
+[dev]
+pyramid_debugtoolbar

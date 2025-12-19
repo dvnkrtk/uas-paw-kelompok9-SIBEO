@@ -1,0 +1,31 @@
+# Pyramid Core
+pyramid==2.0.2
+pyramid_tm==2.5
+pyramid_retry==2.1.1
+
+# Database
+sqlalchemy==1.4.51
+alembic==1.13.1
+psycopg2-binary==2.9.9
+transaction==3.0.1
+zope.sqlalchemy==4.1
+
+# Authentication
+passlib[argon2]==1.7.4
+
+# Server
+waitress==3.0.1
+
+# PasteDeploy Config
+plaster==1.0
+plaster_pastedeploy==0.7
+
+# WebOb - versi yang kompatibel dengan Python 3.11
+webob==1.8.7
+
+# Setuptools
+setuptools==80.9.0
+
+# Development (optional)
+pyramid_debugtoolbar
+gunicorn
