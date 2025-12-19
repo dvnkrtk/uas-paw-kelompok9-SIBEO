@@ -9,10 +9,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { courseService } from "@/lib/api"
-import { ArrowLeft, Plus, Edit, Trash2, Users, BookOpen } from "lucide-react"
+import { ArrowLeft, Plus, Edit, Trash2, Users, BookOpen, Trash } from "lucide-react"
 
 export default function InstructorCourseDetailPage() {
+  // FIX: Mengambil params.courseId sesuai nama folder [courseId]
   const params = useParams()
+  // Fallback: jika params.courseId kosong, coba params.id (jaga-jaga jika folder diubah)
+  const courseId = params.courseId || params.id
+
   const router = useRouter()
   const [course, setCourse] = useState(null)
   const [modules, setModules] = useState([])
@@ -20,25 +24,49 @@ export default function InstructorCourseDetailPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    loadCourseData()
-  }, [params.id])
+    if (courseId) {
+      loadCourseData()
+    }
+  }, [courseId])
 
   const loadCourseData = async () => {
     try {
       setLoading(true)
+      
+      // FIX: Menggunakan 'courseId' yang benar
+      // FIX: Menggunakan 'getEnrolledStudents' sesuai dengan api.js yang baru
       const [courseRes, modulesRes, studentsRes] = await Promise.all([
-        courseService.getCourseById(params.id),
-        courseService.getModules(params.id),
-        courseService.getStudents(params.id),
+        courseService.getCourseById(courseId),
+        courseService.getModules(courseId),
+        courseService.getEnrolledStudents(courseId), 
       ])
-      setCourse(courseRes.data)
-      setModules(modulesRes.data)
-      setStudents(studentsRes.data)
+
+      // Backend response structure check
+      setCourse(courseRes.data || courseRes)
+      setModules(modulesRes.data || modulesRes)
+      setStudents(studentsRes.data || studentsRes)
     } catch (error) {
       console.error("[v0] Error loading course:", error)
-      alert("Gagal memuat data kursus")
+      // Jangan alert di sini agar tidak spamming jika cuma error kecil
     } finally {
       setLoading(false)
+    }
+  }
+
+  // NEW: Fungsi untuk menghapus Kursus
+  const handleDeleteCourse = async () => {
+    if (!confirm("PERINGATAN: Apakah Anda yakin ingin menghapus KURSUS ini? Semua modul dan data siswa di dalamnya akan hilang permanen.")) {
+      return
+    }
+
+    try {
+      await courseService.deleteCourse(courseId)
+      alert("Kursus berhasil dihapus!")
+      // Redirect ke dashboard setelah hapus
+      router.push("/dashboard") 
+    } catch (error) {
+      console.error("Delete error:", error)
+      alert("Gagal menghapus kursus: " + error.message)
     }
   }
 
@@ -48,7 +76,7 @@ export default function InstructorCourseDetailPage() {
     try {
       await courseService.deleteModule(moduleId)
       alert("Modul berhasil dihapus!")
-      loadCourseData()
+      loadCourseData() // Reload data setelah hapus
     } catch (error) {
       alert("Gagal menghapus modul: " + error.message)
     }
@@ -57,15 +85,18 @@ export default function InstructorCourseDetailPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="text-muted-foreground">Memuat...</p>
+        <p className="text-muted-foreground">Memuat data kursus...</p>
       </div>
     )
   }
 
   if (!course) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-muted-foreground">Kursus tidak ditemukan</p>
+      <div className="min-h-screen flex items-center justify-center flex-col gap-4">
+        <p className="text-muted-foreground">Kursus tidak ditemukan atau terjadi kesalahan.</p>
+        <Link href="/dashboard">
+          <Button>Kembali ke Dashboard</Button>
+        </Link>
       </div>
     )
   }
@@ -84,19 +115,29 @@ export default function InstructorCourseDetailPage() {
           </Link>
 
           <div className="mb-8">
-            <div className="flex items-start justify-between mb-4">
+            <div className="flex flex-col md:flex-row md:items-start justify-between mb-4 gap-4">
               <div>
                 <h1 className="text-4xl font-bold mb-2">{course.title}</h1>
                 <p className="text-muted-foreground">
                   {course.category} • {course.level}
                 </p>
               </div>
-              <Link href={`/instructor/courses/${params.id}/edit`}>
-                <Button>
-                  <Edit className="w-4 h-4 mr-2" />
-                  Edit Kursus
+              
+              <div className="flex gap-2">
+                {/* Tombol Edit */}
+                <Link href={`/instructor/courses/${courseId}/edit`}>
+                  <Button variant="outline">
+                    <Edit className="w-4 h-4 mr-2" />
+                    Edit
+                  </Button>
+                </Link>
+                
+                {/* NEW: Tombol Hapus Kursus */}
+                <Button variant="destructive" onClick={handleDeleteCourse}>
+                  <Trash className="w-4 h-4 mr-2" />
+                  Hapus
                 </Button>
-              </Link>
+              </div>
             </div>
             <p className="text-lg leading-relaxed">{course.description}</p>
           </div>
@@ -109,7 +150,7 @@ export default function InstructorCourseDetailPage() {
                     <Users className="w-6 h-6 text-primary" />
                   </div>
                   <div>
-                    <p className="text-2xl font-bold">{students.length}</p>
+                    <p className="text-2xl font-bold">{students?.length || 0}</p>
                     <p className="text-sm text-muted-foreground">Students</p>
                   </div>
                 </div>
@@ -123,7 +164,7 @@ export default function InstructorCourseDetailPage() {
                     <BookOpen className="w-6 h-6 text-primary" />
                   </div>
                   <div>
-                    <p className="text-2xl font-bold">{modules.length}</p>
+                    <p className="text-2xl font-bold">{modules?.length || 0}</p>
                     <p className="text-sm text-muted-foreground">Modul</p>
                   </div>
                 </div>
@@ -150,7 +191,7 @@ export default function InstructorCourseDetailPage() {
             <TabsContent value="modules" className="space-y-4">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-2xl font-bold">Daftar Modul</h2>
-                <Link href={`/instructor/courses/${params.id}/modules/create`}>
+                <Link href={`/instructor/courses/${courseId}/modules/create`}>
                   <Button>
                     <Plus className="w-4 h-4 mr-2" />
                     Tambah Modul
@@ -158,11 +199,11 @@ export default function InstructorCourseDetailPage() {
                 </Link>
               </div>
 
-              {modules.length === 0 ? (
+              {modules?.length === 0 ? (
                 <Card>
                   <CardContent className="pt-6">
                     <p className="text-center text-muted-foreground">Belum ada modul. Buat modul pertama Anda!</p>
-                    <Link href={`/instructor/courses/${params.id}/modules/create`}>
+                    <Link href={`/instructor/courses/${courseId}/modules/create`}>
                       <Button className="mt-4 mx-auto block">Buat Modul</Button>
                     </Link>
                   </CardContent>
@@ -185,11 +226,13 @@ export default function InstructorCourseDetailPage() {
                             )}
                           </div>
                           <div className="flex gap-2">
-                            <Link href={`/instructor/courses/${params.id}/modules/${module.id}/edit`}>
+                            {/* Edit Module */}
+                            <Link href={`/instructor/courses/${courseId}/modules/${module.id}/edit`}>
                               <Button variant="outline" size="sm">
                                 <Edit className="w-4 h-4" />
                               </Button>
                             </Link>
+                            {/* Hapus Module */}
                             <Button variant="destructive" size="sm" onClick={() => handleDeleteModule(module.id)}>
                               <Trash2 className="w-4 h-4" />
                             </Button>
@@ -205,7 +248,7 @@ export default function InstructorCourseDetailPage() {
             <TabsContent value="students" className="space-y-4">
               <h2 className="text-2xl font-bold mb-4">Daftar Students</h2>
 
-              {students.length === 0 ? (
+              {students?.length === 0 ? (
                 <Card>
                   <CardContent className="pt-6">
                     <p className="text-center text-muted-foreground">Belum ada students yang mendaftar</p>
