@@ -110,9 +110,7 @@ Backend menggunakan format respons JSON standar: `{ "data": {...}, "message": "S
 
 ## Screenshot Aplikasi
 
-*(Silakan unggah gambar Anda ke folder repositori dan sesuaikan path di bawah ini)*
-
-* **Homepage**: ![home](https://github.com/SIBEO-9/uas-paw-kelompok9-SIBEO/blob/main/img/dashboard.png ) 
+* **Homepage** ![home](https://github.com/SIBEO-9/uas-paw-kelompok9-SIBEO/blob/main/img/dashboard.png ) 
 * **Dashboard**: `![Dashboard](./public/logo.png)`
 
 ---
