@@ -114,7 +114,9 @@ Backend menggunakan format respons JSON standar: `{ "data": {...}, "message": "S
 * **Kategori Kursus** ![kategori](https://github.com/SIBEO-9/uas-paw-kelompok9-SIBEO/blob/main/img/kategori.png )
 * **Footer** ![footer](https://github.com/SIBEO-9/uas-paw-kelompok9-SIBEO/blob/main/img/footer.png
  ) 
-
+* **Kursus** ![kursus](https://github.com/SIBEO-9/uas-paw-kelompok9-SIBEO/blob/main/img/kursus.png
+ ) 
+* **Daftar Kursus** ![daftar]([https://github.com/SIBEO-9/uas-paw-kelompok9-SIBEO/blob/main/img/dashboard.png](https://github.com/SIBEO-9/uas-paw-kelompok9-SIBEO/blob/main/img/daftar%20kursus.png) ) 
 ---
 
 ## Link Video Presentasi
